@@ -92,6 +92,56 @@ namespace Oops
                         playerHand.Hand.Add(new Card(card, suit));
                         Console.WriteLine("Vaše karta:" + card);
 
+                        playerHand.cardSum = playerHand.Hand.Sum(c => c.value);
+                        dealerHand.cardSum = dealerHand.Hand.Sum(c => c.value);
+
+                        while (playerHand.Game())
+                        {
+                            deck.DealCard(out card, out suit);              //hráč tahá znovu
+                            card = playerHand.MasterHandle(card);
+                            playerHand.Hand.Add(new Card(card, suit));
+                            Console.WriteLine("Vaše karta:" + card);
+                            playerHand.cardSum = playerHand.Hand.Sum(c => c.value);
+                        }
+                        if (playerHand.bust)
+                        {
+                            Console.WriteLine("Bust!");
+                            zustatek -= sazka;
+                            continue;
+                        }
+
+                        while (dealerHand.Game())
+                        {
+                            deck.DealCard(out card, out suit);              //dealer tahá znovu
+                            card = dealerHand.MasterHandle(card);
+                            dealerHand.Hand.Add(new Card(card, suit));
+                            Console.WriteLine("Dealerova karta:" + card);
+                            dealerHand.cardSum = dealerHand.Hand.Sum(c => c.value);
+                        }
+                        if (dealerHand.bust)
+                        {
+                            Console.WriteLine("Dealer bust!");
+                            zustatek += sazka;
+                            continue;
+                        }
+                        else if (dealerHand.cardSum > playerHand.cardSum)
+                        {
+                            Console.WriteLine("Dealer má víc!");
+                            zustatek -= sazka;
+                            continue;
+                        }
+                        else if (playerHand.cardSum > dealerHand.cardSum)
+                        {
+                            Console.WriteLine("Hráč má víc!");
+                            zustatek += sazka;
+                            continue;
+                        }
+                        else if (playerHand.cardSum == dealerHand.cardSum)
+                        {
+                            Console.WriteLine("Stand off! Šul nul.");
+                            continue;
+                        }
+
 
                     }
                     else
@@ -99,7 +149,7 @@ namespace Oops
                         Console.WriteLine("\nJseš broke gój, o co se snažíš ");
                     }
                 }
-                else if (volba == "5" && islandInvite)
+                else if (volba == "4" && islandInvite)
                 {
                     Console.WriteLine("\n\nŠalom, já jsem Jeffrey a zvu vás na můj ostrov.");
                 }
@@ -194,6 +244,7 @@ namespace Oops
     }
     class BlackjackHand
     {
+        public bool bust = false;
         public bool player;
         public List<Card> Hand = new();
         public int cardSum;
@@ -222,6 +273,51 @@ namespace Oops
             }
             return card;
         }
+        public bool Game()
+        {
+            if (player)
+            {
+                if (cardSum > 21)
+                {
+                    bust = true;
+                    return false;
+                }
+                int input = 0;
+                Console.WriteLine("1 hit");
+                Console.WriteLine("2 stand");
+                input = UserInput.IntCheck(" zvoleno.");
+                while (input != 1 && input != 2)
+                {
+                    Console.WriteLine("1 nebo 2. Znova:");
+                    input = UserInput.IntCheck(" zvoleno.");
+                }
+                if (input == 1)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                if (cardSum > 21)
+                {
+                    bust = true;
+                    return false;
+                }
+                else if (cardSum < 18)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
 
         public BlackjackHand(bool player)
         {
