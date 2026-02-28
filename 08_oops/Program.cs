@@ -93,6 +93,7 @@ namespace Oops
                         Console.WriteLine("Vaše karta:" + card);
 
                         playerHand.cardSum = playerHand.Hand.Sum(c => c.value);
+                        dealerHand.cardSum = dealerHand.Hand.Sum(c => c.value);
 
                         while (playerHand.Game())
                         {
@@ -109,13 +110,46 @@ namespace Oops
                             continue;
                         }
 
+                        while (dealerHand.Game())
+                        {
+                            deck.DealCard(out card, out suit);              //dealer tahá znovu
+                            card = dealerHand.MasterHandle(card);
+                            dealerHand.Hand.Add(new Card(card, suit));
+                            Console.WriteLine("Dealerova karta:" + card);
+                            dealerHand.cardSum = dealerHand.Hand.Sum(c => c.value);
+                        }
+                        if (dealerHand.bust)
+                        {
+                            Console.WriteLine("Dealer bust!");
+                            zustatek += sazka;
+                            continue;
+                        }
+                        else if (dealerHand.cardSum > playerHand.cardSum)
+                        {
+                            Console.WriteLine("Dealer má víc!");
+                            zustatek -= sazka;
+                            continue;
+                        }
+                        else if (playerHand.cardSum > dealerHand.cardSum)
+                        {
+                            Console.WriteLine("Hráč má víc!");
+                            zustatek += sazka;
+                            continue;
+                        }
+                        else if (playerHand.cardSum == dealerHand.cardSum)
+                        {
+                            Console.WriteLine("Stand off! Šul nul.");
+                            continue;
+                        }
+
+
                     }
                     else
                     {
                         Console.WriteLine("\nJseš broke gój, o co se snažíš ");
                     }
                 }
-                else if (volba == "5" && islandInvite)
+                else if (volba == "4" && islandInvite)
                 {
                     Console.WriteLine("\n\nŠalom, já jsem Jeffrey a zvu vás na můj ostrov.");
                 }
@@ -241,27 +275,46 @@ namespace Oops
         }
         public bool Game()
         {
-            if (cardSum > 21)
+            if (player)
             {
-                bust = true;
-                return false;
-            }
-            int input = 0;
-            Console.WriteLine("1 hit");
-            Console.WriteLine("2 stand");
-            input = UserInput.IntCheck(" zvoleno.");
-            while (input != 1 && input != 2) 
-            {
-                Console.WriteLine("1 nebo 2. Znova:");
+                if (cardSum > 21)
+                {
+                    bust = true;
+                    return false;
+                }
+                int input = 0;
+                Console.WriteLine("1 hit");
+                Console.WriteLine("2 stand");
                 input = UserInput.IntCheck(" zvoleno.");
-            }
-            if (input == 1)
-            {
-                return true;
+                while (input != 1 && input != 2)
+                {
+                    Console.WriteLine("1 nebo 2. Znova:");
+                    input = UserInput.IntCheck(" zvoleno.");
+                }
+                if (input == 1)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
             else
             {
-                return false;
+                if (cardSum > 21)
+                {
+                    bust = true;
+                    return false;
+                }
+                else if (cardSum < 18)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
         }
 
