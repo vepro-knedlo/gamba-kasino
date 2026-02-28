@@ -92,6 +92,22 @@ namespace Oops
                         playerHand.Hand.Add(new Card(card, suit));
                         Console.WriteLine("Vaše karta:" + card);
 
+                        playerHand.cardSum = playerHand.Hand.Sum(c => c.value);
+
+                        while (playerHand.Game())
+                        {
+                            deck.DealCard(out card, out suit);              //hráč tahá znovu
+                            card = playerHand.MasterHandle(card);
+                            playerHand.Hand.Add(new Card(card, suit));
+                            Console.WriteLine("Vaše karta:" + card);
+                            playerHand.cardSum = playerHand.Hand.Sum(c => c.value);
+                        }
+                        if (playerHand.bust)
+                        {
+                            Console.WriteLine("Bust!");
+                            zustatek -= sazka;
+                            continue;
+                        }
 
                     }
                     else
@@ -194,6 +210,7 @@ namespace Oops
     }
     class BlackjackHand
     {
+        public bool bust = false;
         public bool player;
         public List<Card> Hand = new();
         public int cardSum;
@@ -222,6 +239,32 @@ namespace Oops
             }
             return card;
         }
+        public bool Game()
+        {
+            if (cardSum > 21)
+            {
+                bust = true;
+                return false;
+            }
+            int input = 0;
+            Console.WriteLine("1 hit");
+            Console.WriteLine("2 stand");
+            input = UserInput.IntCheck(" zvoleno.");
+            while (input != 1 && input != 2) 
+            {
+                Console.WriteLine("1 nebo 2. Znova:");
+                input = UserInput.IntCheck(" zvoleno.");
+            }
+            if (input == 1)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
 
         public BlackjackHand(bool player)
         {
