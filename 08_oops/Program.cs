@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace Oops
+namespace oops
 {
 	class Program
 	{
@@ -8,40 +8,50 @@ namespace Oops
 		{
             Console.OutputEncoding = Encoding.UTF8;
 
-            int sazka;
-            int zustatek;
+            Bank player1Bank = new();
+
             string volba;
             int pujcka = 0;
             int kolSplaceno = 0;
             bool islandInvite = false;
             int card;
             int suit;
+            bool played = false;
 
-            Console.WriteLine("Začáteční šekely (1000 minimum): ");
-            zustatek = UserInput.IntCheck("₪ vloženo.");
-            zustatek = UserInput.ValCheck(zustatek, "₪ vloženo.", 1000, 5000);
+            Console.WriteLine("Začáteční šekely (1000 min, 5000 max): ");
+            player1Bank.zustatek = UserInput.IntCheck("₪ vloženo.");
+            player1Bank.zustatek = UserInput.ValCheck(player1Bank.zustatek, "₪ vloženo.", 1000, 5000);
 
             while (true)
             {
-                if (kolSplaceno == 3)
+                if (played && player1Bank.roundsPaid != player1Bank.loanLength)
                 {
-                    pujcka = 0;
-                    Console.WriteLine("Půjčka splacena!");
-                    kolSplaceno = 0;
+                    player1Bank.PaymentSubstract();
                 }
-                if (zustatek < 0)
+                else if (player1Bank.roundsPaid == player1Bank.loanLength && player1Bank.roundsPaid != 0)
+                {
+                    player1Bank.roundsPaid = 0;
+                    player1Bank.loanLength = 0;
+                    player1Bank.loanAmount = 0;
+                    player1Bank.paymentAmount = 0;
+                    Console.WriteLine("Půjčka splacena!");
+                }
+                played = false;
+
+
+                if (player1Bank.zustatek < 0)
                 {
                     Console.WriteLine("\n\nŠvorc.");
-                    Console.WriteLine("Zůstatek peněz: " + zustatek + "₪");
+                    Console.WriteLine("Zůstatek peněz: " + player1Bank.zustatek + "₪");
                     Console.WriteLine("konec hry");
                     break;
                 }
                 Console.WriteLine("\n\n\n\n\nVýtejte v kasínu הבה נגילה \n\nMAIN MENU");
-                Console.WriteLine("Zůstatek peněz: " + zustatek + "₪");
+                Console.WriteLine("Zůstatek peněz: " + player1Bank.zustatek + "₪");
                 Console.WriteLine("\n1 new game");
                 Console.WriteLine("2 banka");
                 Console.WriteLine("3 exit game");
-                if (zustatek > 10000)
+                if (player1Bank.zustatek > 10000)
                 {
                     Console.WriteLine("4 Little Saint James DLC");
                     islandInvite = true;
@@ -50,27 +60,30 @@ namespace Oops
 
                 if (volba == "2")
                 {
-                    if (zustatek < 0 || pujcka > 0)
+                    if (player1Bank.zustatek < 0 || player1Bank.loanAmount > 0)
                     {
                         Console.WriteLine("\nUž jste zadlužený!");
                         continue;
                     }
                     Console.WriteLine("\n\n\nVýtejte v bance Maxwell & co.");
                     Console.WriteLine("Kolik si půjčíte? (min 500₪ max 2000₪)");
-                    pujcka = UserInput.IntCheck("₪ půjčeno.");
-                    pujcka = UserInput.ValCheck(pujcka, "₪ půjčeno.", 500, 2000);
-                    Console.WriteLine("splátka: " + pujcka / 2 + "₪ za kolo po dobu 3 kol.");
+                    player1Bank.loanAmount = UserInput.IntCheck("₪ půjčeno.");
+                    player1Bank.loanAmount = UserInput.ValCheck(player1Bank.loanAmount, "₪ půjčeno.", 500, 2000);
+                    player1Bank.PaymentCalc();
+                    Console.WriteLine("splátka: " + player1Bank.paymentAmount + "₪ za kolo po dobu " + player1Bank.loanLength + " kol.");
                     Console.WriteLine("");
-                    zustatek += pujcka;
+                    player1Bank.zustatek += player1Bank.loanAmount;
                 }
                 else if (volba == "1")
                 {
-                    if (zustatek > 200)
+                    if (player1Bank.zustatek > 200)
                     {
                         Console.WriteLine("Sázka (min. 200₪): ");
-                        sazka = UserInput.IntCheck("₪ vsazeno.");
-                        sazka = UserInput.ValCheck(sazka, "₪ vsazeno.", 200, zustatek);
+                        player1Bank.sazka = UserInput.IntCheck("₪ vsazeno.");
+                        player1Bank.sazka = UserInput.ValCheck(player1Bank.sazka, "₪ vsazeno.", 200, player1Bank.zustatek);
                         Console.WriteLine("\n\n\nHra začala!\n\n\n");
+
+                        played = true;
 
                         Deck deck = new();
                         BlackjackHand playerHand = new(true);
@@ -106,7 +119,7 @@ namespace Oops
                         if (playerHand.bust)
                         {
                             Console.WriteLine("Bust!");
-                            zustatek -= sazka;
+                            player1Bank.zustatek -= player1Bank.sazka;
                             continue;
                         }
 
@@ -121,19 +134,19 @@ namespace Oops
                         if (dealerHand.bust)
                         {
                             Console.WriteLine("Dealer bust!");
-                            zustatek += sazka;
+                            player1Bank.zustatek += player1Bank.sazka;
                             continue;
                         }
                         else if (dealerHand.cardSum > playerHand.cardSum)
                         {
                             Console.WriteLine("Dealer má víc!");
-                            zustatek -= sazka;
+                            player1Bank.zustatek -= player1Bank.sazka;
                             continue;
                         }
                         else if (playerHand.cardSum > dealerHand.cardSum)
                         {
                             Console.WriteLine("Hráč má víc!");
-                            zustatek += sazka;
+                            player1Bank.zustatek += player1Bank.sazka;
                             continue;
                         }
                         else if (playerHand.cardSum == dealerHand.cardSum)
@@ -242,10 +255,10 @@ namespace Oops
             this.suit = suit;
         }
     }
-    class BlackjackHand
+    class BlackjackHand(bool player)
     {
+        public bool player = player;
         public bool bust = false;
-        public bool player;
         public List<Card> Hand = new();
         public int cardSum;
         public int MasterHandle(int card)
@@ -317,11 +330,33 @@ namespace Oops
                 }
             }
         }
+    }
+    class Bank()
+    {
+        public int sazka = 0;
+        public int zustatek = 0;
 
-
-        public BlackjackHand(bool player)
+        public int loanAmount = 0;
+        public int roundsPaid = 0;
+        public int loanLength = 0;
+        public int paymentAmount = 0;
+        public void PaymentCalc()
         {
-            this.player = player;
+            if (loanAmount > zustatek)
+            {
+                loanLength = 4;
+                paymentAmount = loanAmount / 4;
+            }
+            else if (loanAmount < zustatek)
+            {
+                loanLength = 3;
+                paymentAmount = loanAmount / 3;
+            }
+        }
+        public void PaymentSubstract() 
+        {
+            zustatek -= paymentAmount;
+            roundsPaid++;
         }
     }
 }
