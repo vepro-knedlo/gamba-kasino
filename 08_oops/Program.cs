@@ -10,9 +10,7 @@ namespace oops
 
             Bank player1Bank = new();
 
-            string volba;
-            int pujcka = 0;
-            int kolSplaceno = 0;
+            int volba;
             bool islandInvite = false;
             int card;
             int suit;
@@ -56,9 +54,9 @@ namespace oops
                     Console.WriteLine("4 Little Saint James DLC");
                     islandInvite = true;
                 }
-                volba = Console.ReadLine();
+                volba = UserInput.IntCheck(" zvoleno");
 
-                if (volba == "2")
+                if (volba == 2)
                 {
                     if (player1Bank.zustatek < 0 || player1Bank.loanAmount > 0)
                     {
@@ -74,7 +72,7 @@ namespace oops
                     Console.WriteLine("");
                     player1Bank.zustatek += player1Bank.loanAmount;
                 }
-                else if (volba == "1")
+                else if (volba == 1)
                 {
                     if (player1Bank.zustatek > 200)
                     {
@@ -162,11 +160,11 @@ namespace oops
                         Console.WriteLine("\nJseš broke gój, o co se snažíš ");
                     }
                 }
-                else if (volba == "4" && islandInvite)
+                else if (volba == 4 && islandInvite)
                 {
                     Console.WriteLine("\n\nŠalom, já jsem Jeffrey a zvu vás na můj ostrov.");
                 }
-                else if (volba == "3")
+                else if (volba == 3)
                 {
                     break;
                 }
@@ -214,7 +212,7 @@ namespace oops
     {
         public static int IntCheck(string matter = "")
         {
-            string input;
+            string? input;
             int output;
             while (true)
             {
@@ -224,7 +222,7 @@ namespace oops
                 {
                     output = Convert.ToInt32(input);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     Console.WriteLine("Error reading input " + input + ": NaN. Try again:");
                     continue;
@@ -244,16 +242,10 @@ namespace oops
             return input;
         }
     }
-    class Card
+    class Card(int value, int suit)
     {
-        public int value;
-        public int suit;
-
-        public Card(int value, int suit)
-        {
-            this.value = value;
-            this.suit = suit;
-        }
+        public int value = value;
+        public int suit = suit;
     }
     class BlackjackHand(bool player)
     {
@@ -295,7 +287,7 @@ namespace oops
                     bust = true;
                     return false;
                 }
-                int input = 0;
+                int input;
                 Console.WriteLine("1 hit");
                 Console.WriteLine("2 stand");
                 input = UserInput.IntCheck(" zvoleno.");
